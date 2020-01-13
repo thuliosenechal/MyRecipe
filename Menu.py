@@ -7,6 +7,7 @@ from defIngredient import *
 conn = sqlite3.connect('MinhaReceita.db')
 cursor = conn.cursor()
 
+
 # Add, list or remove ingredients of recipe
 def menu_ingredients(recipeid, userid):
     while True:
@@ -155,5 +156,3 @@ def main_menu(userid):
 if __name__ == '__main__':
     userid = 7
     main_menu(userid)
-
-
