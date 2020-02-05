@@ -1,5 +1,5 @@
 # MyRecipe
-My first project in Python. Sorry my mistakes. ^^
+My first project in Python.
 
 Run login.py
 
