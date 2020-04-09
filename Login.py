@@ -1,6 +1,6 @@
 import sys
 from Menu import *
-from defLogin import *
+from database import Database as db
 
 
 def login_option():
@@ -36,10 +36,10 @@ def login_option():
                     break
 
         # Consult if username already exist in Users table
-        consult = consult_user(username)
+        consult = db.consult_user(username)
 
         if consult == 0:
-            insert_user = insert_table(name, username, email, cpf, password)
+            insert_user = db.insert_table(name, username, email, cpf, password)
 
             if insert_user == 0:
                 print('Successfully registered user')
@@ -56,7 +56,7 @@ def login_option():
         username = input('Enter Username: ')
         password = getpass.getpass(prompt='Enter a Password: ')
 
-        consult_user_login, id_user = consult_login(username, password)
+        consult_user_login, id_user = db.consult_login(username, password)
 
         if consult_user_login == 0:
             print('Login Successful')
@@ -69,11 +69,11 @@ def login_option():
     # Forget password
     if option == 3:
         email = input('Enter you email: ')
-        consul_email = consult_email(email)
+        consul_email = db.consult_email(email)
 
         if consul_email == 0:
-            consul_password = consult_password(email)
-            send_password = forget_password(email, consul_password)
+            consul_password = db.consult_password(email)
+            send_password = db.forget_password(email, consul_password)
             print(send_password)
         else:
             print('Email not exist.')
