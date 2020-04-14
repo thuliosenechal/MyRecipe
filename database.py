@@ -1,106 +1,130 @@
 import sqlite3
-import getpass
 import smtplib
 import os.path
 from email.mime.text import MIMEText
+import query_banco as query
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_path = os.path.join(BASE_DIR, "MinhaReceita.db")
-
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
 class Database():
     
-    def consult_login(self, username, password):
-        # Consult if username and password are correct
-        msgcode = 0
-        cursor.execute('SELECT count(1), ID FROM Users WHERE username = ? and password = ?', (username, password,))
+    def consulta_login(self, usuario, senha):
+        # Verifica se usuario e senha estao corretos
+        cursor.execute(query.consulta_usuario_senha, (usuario, senha,))
 
         record = cursor.fetchone()
         count = record[0]
-        iduser = record[1]
+        id_usuario = record[1]
 
         if count == 0:
-            msgcode = 1
-            iduser = 0
-            return msgcode, iduser
-        return msgcode, iduser
+            print('*** Usuário e/ou senha incorretos ***')
+            login_option()
+        
+        menu_receita(id_usuario)
 
-
-    def consult_email(self, email):
+    def consulta_email(self, email):
         # Consult if email exist
         msgcode = 0
-        cursor.execute('SELECT count(1) FROM Users WHERE Email = ?', (email,))
+        cursor.execute(query.consulta_email, (email,))
 
         count = cursor.fetchone()[0]
 
         if count == 0:
-            msgcode = 1
-            return msgcode
-        return msgcode
-
-    def consult_password(self, email):
+            print('Email não cadastrado')
+            login_option()
+        
+        pega_senha = consulta_senha(email)
+        recupera_senha(email, pega_senha)
+        
+    def consulta_senha(self, email):
         # Consult password to send an email to user
-        cursor.execute('SELECT Password FROM Users WHERE Email = ? ', (email,))
+        cursor.execute(query.recupera_senha, (email,))
 
-        pwd = cursor.fetchone()[0]
-        return pwd
+        senha = cursor.fetchone()[0]
+        return senha
 
-    def forget_password(self, email, pwd):
-        # Send email to user with password
-        # connection with servers google
+    def recupera_senha(self, email, senha_usuario):
+
         smtp_ssl_host = 'smtp.gmail.com'
         smtp_ssl_port = 465
 
         # Username and email to login in mail server
-        username = 'email' # insert your gmail email
-        password = 'password' # insert your password mail
+        usuario_email = 'email' # insert your gmail email
+        senha = 'password' # insert your password mail
 
         from_addr = 'email' # insert your gmail email
         to_addrs = email
 
         # Only text
-        message = MIMEText(f'Your password is {pwd}')
-        message['subject'] = 'Password forget MinhaReceita app'
+        message = MIMEText(f'Sua senha é: {senha_usuario}')
+        message['subject'] = 'Recuperação de senha do app MinhaReceita'
         message['from'] = from_addr
         message['to'] = to_addrs
 
         # Secure connection using SSL
         server = smtplib.SMTP_SSL(smtp_ssl_host, smtp_ssl_port)
         # To interage with an external server we need login him
-        server.login(username, password)
+        server.login(usuario_email, senha)
         server.sendmail(from_addr, to_addrs, message.as_string())
         server.quit()
 
-        msg = 'We sent you an email with your password'
+        print('Enviamos a sua senha para o email cadastrado')
 
-        return msg
-
-    def consult_user(self, username):
-        # Consult if username already exist in table Users
-        msgcode = 0
-        cursor.execute('SELECT count(1) FROM Users WHERE username = ?', (username,))
-
+    def consulta_usuario(self, usuario):
+        # Consulta se o usuário já existe na base de dados
+        cursor.execute(query.consulta_usuario, (usuario,))
         count = cursor.fetchone()[0]
 
         if count > 0:
-            msgcode = 1
+            return 1
+        return 0
 
-        return msgcode
-
-    def insert_table(self, name, username, email, cpf, password):
-        # Register user data in Users table
-        msgcode = 0
+    def insere_usuario(self, nome, usuario, email, cpf, senha):
+        
         try:
-            cursor.execute("""
-                                INSERT INTO Users (name, username, email, cpf, password) 
-                                VALUES (?, ?, ?, ?, ?)""", (name, username, email, cpf, password))
+            cursor.execute(query.insere_usuario_banco, 
+            (nome, usuario, email, cpf, senha))
 
+            conn.commit()
+        except sqlite3.Error as e:
+            print('Ocorreu um erro:', e.args[0])
+            print('Por favor, contactar o administrador do sistema')
+            login_option()
+
+        print('Usuário cadastrado com sucesso.')
+        login_option()
+
+    def listar_receita(self, id_usuario):
+        cursor.execute(query.listar_receitas, (id_usuario,))
+
+        receitas = cursor.fetchall()
+        return receitas
+
+    def adicionar_receita(self, nome, id_usuario):
+        try:
+            cursor.execute(query.adicionar_receita, (nome, id_usuario))
             conn.commit()
 
         except sqlite3.Error as e:
-            print("An error occurred:", e.args[0])
-            msgcode = 1
+            msg = ("Ocorreu um erro ao adicionar a receita: ", e.args[0])
+            return msg
 
-        return msgcode
+        msg = 'Receita adicionada com sucess.'    
+        return msg
+
+    def deletar_receita(self, id_receita):
+        try:
+            cursor.execute(query.deletar_receita, (id_receita,))
+            conn.commit()
+
+        except sqlite3.Error as e:
+            msg = ("Ocorreu um erro ao deletar a receita: ", e.args[0])
+            return msg
+
+        msg = 'Receita deletada com sucesso'
+        return msg
+        
