@@ -10,98 +10,97 @@ db_path = os.path.join(BASE_DIR, "MinhaReceita.db")
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
-# Consult if username and password are correct
-def consult_login(username, password):
-    msgcode = 0
-    cursor.execute('SELECT count(1), ID FROM Users WHERE username = ? and password = ?', (username, password,))
+class Database():
+    
+    def consult_login(self, username, password):
+        # Consult if username and password are correct
+        msgcode = 0
+        cursor.execute('SELECT count(1), ID FROM Users WHERE username = ? and password = ?', (username, password,))
 
-    record = cursor.fetchone()
-    count = record[0]
-    iduser = record[1]
+        record = cursor.fetchone()
+        count = record[0]
+        iduser = record[1]
 
-    if count == 0:
-        msgcode = 1
-        iduser = 0
+        if count == 0:
+            msgcode = 1
+            iduser = 0
+            return msgcode, iduser
         return msgcode, iduser
-    return msgcode, iduser
 
 
-# Consult if email exist
-def consult_email(email):
-    msgcode = 0
-    cursor.execute('SELECT count(1) FROM Users WHERE Email = ?', (email,))
+    def consult_email(self, email):
+        # Consult if email exist
+        msgcode = 0
+        cursor.execute('SELECT count(1) FROM Users WHERE Email = ?', (email,))
 
-    count = cursor.fetchone()[0]
+        count = cursor.fetchone()[0]
 
-    if count == 0:
-        msgcode = 1
+        if count == 0:
+            msgcode = 1
+            return msgcode
         return msgcode
-    return msgcode
 
+    def consult_password(self, email):
+        # Consult password to send an email to user
+        cursor.execute('SELECT Password FROM Users WHERE Email = ? ', (email,))
 
-# Consult password to send an email to user
-def consult_password(email):
-    cursor.execute('SELECT Password FROM Users WHERE Email = ? ', (email,))
+        pwd = cursor.fetchone()[0]
+        return pwd
 
-    pwd = cursor.fetchone()[0]
-    return pwd
+    def forget_password(self, email, pwd):
+        # Send email to user with password
+        # connection with servers google
+        smtp_ssl_host = 'smtp.gmail.com'
+        smtp_ssl_port = 465
 
+        # Username and email to login in mail server
+        username = 'email' # insert your gmail email
+        password = 'password' # insert your password mail
 
-# Send email to user with password
-def forget_password(email, pwd):
-    # connection with servers google
-    smtp_ssl_host = 'smtp.gmail.com'
-    smtp_ssl_port = 465
+        from_addr = 'email' # insert your gmail email
+        to_addrs = email
 
-    # Username and email to login in mail server
-    username = 'email' # insert your gmail email
-    password = 'password' # insert your password mail
+        # Only text
+        message = MIMEText(f'Your password is {pwd}')
+        message['subject'] = 'Password forget MinhaReceita app'
+        message['from'] = from_addr
+        message['to'] = to_addrs
 
-    from_addr = 'email' # insert your gmail email
-    to_addrs = email
+        # Secure connection using SSL
+        server = smtplib.SMTP_SSL(smtp_ssl_host, smtp_ssl_port)
+        # To interage with an external server we need login him
+        server.login(username, password)
+        server.sendmail(from_addr, to_addrs, message.as_string())
+        server.quit()
 
-    # Only text
-    message = MIMEText(f'Your password is {pwd}')
-    message['subject'] = 'Password forget MinhaReceita app'
-    message['from'] = from_addr
-    message['to'] = to_addrs
+        msg = 'We sent you an email with your password'
 
-    # Secure connection using SSL
-    server = smtplib.SMTP_SSL(smtp_ssl_host, smtp_ssl_port)
-    # To interage with an external server we need login him
-    server.login(username, password)
-    server.sendmail(from_addr, to_addrs, message.as_string())
-    server.quit()
+        return msg
 
-    msg = 'We sent you an email with your password'
+    def consult_user(self, username):
+        # Consult if username already exist in table Users
+        msgcode = 0
+        cursor.execute('SELECT count(1) FROM Users WHERE username = ?', (username,))
 
-    return msg
+        count = cursor.fetchone()[0]
 
-# Consult if username already exist in table Users
-def consult_user(username):
-    msgcode = 0
-    cursor.execute('SELECT count(1) FROM Users WHERE username = ?', (username,))
+        if count > 0:
+            msgcode = 1
 
-    count = cursor.fetchone()[0]
+        return msgcode
 
-    if count > 0:
-        msgcode = 1
+    def insert_table(self, name, username, email, cpf, password):
+        # Register user data in Users table
+        msgcode = 0
+        try:
+            cursor.execute("""
+                                INSERT INTO Users (name, username, email, cpf, password) 
+                                VALUES (?, ?, ?, ?, ?)""", (name, username, email, cpf, password))
 
-    return msgcode
+            conn.commit()
 
+        except sqlite3.Error as e:
+            print("An error occurred:", e.args[0])
+            msgcode = 1
 
-# Register user data in Users table
-def insert_table(name, username, email, cpf, password):
-    msgcode = 0
-    try:
-        cursor.execute("""
-                             INSERT INTO Users (name, username, email, cpf, password) 
-                             VALUES (?, ?, ?, ?, ?)""", (name, username, email, cpf, password))
-
-        conn.commit()
-
-    except sqlite3.Error as e:
-        print("An error occurred:", e.args[0])
-        msgcode = 1
-
-    return msgcode
+        return msgcode
