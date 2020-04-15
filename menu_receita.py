@@ -1,4 +1,4 @@
-from receita import Receita
+import receita
 
 
 def menu_receita(id_usuario):

@@ -1,7 +1,7 @@
 from time import sleep
-from database import Database as db
-from menu_receita import *
-from menu_ingrediente import *
+import database
+import menu_receita
+import menu_ingrediente
 
 
 class Receita():

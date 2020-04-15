@@ -1,6 +1,7 @@
 import sqlite3
 import smtplib
 import os.path
+from time import sleep
 from email.mime.text import MIMEText
 import query_banco as query
 
@@ -21,7 +22,8 @@ class Database():
         id_usuario = record[1]
 
         if count == 0:
-            print('*** Usuário e/ou senha incorretos ***')
+            print('\n*** Usuário e/ou senha incorretos ***')
+            from menu_login import login_option
             login_option()
         
         menu_receita(id_usuario)
@@ -34,7 +36,9 @@ class Database():
         count = cursor.fetchone()[0]
 
         if count == 0:
-            print('Email não cadastrado')
+            print('\n***Email não cadastrado***')
+            sleep(1.5)
+            from menu_login import login_option
             login_option()
         
         pega_senha = consulta_senha(email)
@@ -72,7 +76,7 @@ class Database():
         server.sendmail(from_addr, to_addrs, message.as_string())
         server.quit()
 
-        print('Enviamos a sua senha para o email cadastrado')
+        print('\nEnviamos a sua senha para o email cadastrado')
 
     def consulta_usuario(self, usuario):
         # Consulta se o usuário já existe na base de dados
@@ -93,9 +97,11 @@ class Database():
         except sqlite3.Error as e:
             print('Ocorreu um erro:', e.args[0])
             print('Por favor, contactar o administrador do sistema')
+            from menu_login import login_option
             login_option()
 
-        print('Usuário cadastrado com sucesso.')
+        print('\nUsuário cadastrado com sucesso.')
+        from menu_login import login_option
         login_option()
 
     def listar_receita(self, id_usuario):
@@ -113,7 +119,7 @@ class Database():
             msg = ("Ocorreu um erro ao adicionar a receita: ", e.args[0])
             return msg
 
-        msg = 'Receita adicionada com sucess.'    
+        msg = 'Receita adicionada com sucesso.'    
         return msg
 
     def deletar_receita(self, id_receita):

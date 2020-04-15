@@ -1,7 +1,9 @@
-from usuario import Usuario
+import usuario
 
 
-def login_option():
+usuario = usuario.Usuario()
+
+def login_option():    
     print('''
            Escolha uma opção:
            
@@ -11,8 +13,6 @@ def login_option():
            4 - Sair''')
 
     opcao_usuario = int(input('>: '))
-
-    usuario = Usuario()
 
     if opcao_usuario not in (1, 2, 3, 4):
         print('Opção inválida.')

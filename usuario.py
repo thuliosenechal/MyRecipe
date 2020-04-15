@@ -1,16 +1,17 @@
 import sys
-import time
+from time import sleep
 import getpass
-from database import Database
-from menu_receita import *
+import database
+import menu_receita
 
-db = Database()
 
-class Usuario(object):
+db = database.Database()
+
+class Usuario():
     
     def cadastrar_novo_usuario(self):
 
-        usuario = input('Entre com um usuário: ')
+        usuario = input('\nEntre com um usuário: ')
         valida_usuario = self.valida_se_usuario_existe(usuario)
         
         if valida_usuario == 0:
@@ -21,32 +22,36 @@ class Usuario(object):
             confirma_senha = getpass.getpass(prompt='Confirme a senha: ')
 
             while senha != confirma_senha:
-                print('Senha e confirmação de senha diferentes.')
+                print('\nSenha e confirmação de senha diferentes.\n')
                 senha = getpass.getpass(prompt='Entre com a senha: ')
                 confirma_senha = getpass.getpass(prompt='Confirme a senha: ')
         
-            insere_usuario_banco = db.insere_usario(nome, usuario, email, cpf, senha)
+            insere_usuario_banco = db.insere_usuario(nome, usuario, email, cpf, senha)
 
     def valida_se_usuario_existe(self, usuario):
         consulta_usuario = db.consulta_usuario(usuario)
 
         if consulta_usuario == 0:
             return 0
-        print('Usuário já cadastrado.')
+        print('\nUsuário já cadastrado.')
+        sleep(1.5)
         from menu_login import login_option
         login_option()
 
     def logar_sistema(self):
         usuario = input('\nUsuário: ')
-        #senha = getpass.getpass(prompt='Senha: ')
-        senha = input('Senha: ')
+        senha = getpass.getpass(prompt='Senha: ')
+        #senha = input('Senha: ')
         db.consulta_login(usuario, senha)
 
     def recuperar_senha_esquecida(self):
-        email = input('Entre com seu email: ')
+        email = input('\nInsira seu email: ')
         consulta_email = db.consulta_email(email)
 
     def sair_programa(self):
-        print('Saindo do programa...')
-        time.sleep(2)
+        print('\nSaindo do programa...')
+        time.sleep(1.5)
         sys.exit()
+
+        
+        
